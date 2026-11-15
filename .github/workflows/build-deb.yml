@@ -1,0 +1,44 @@
+name: Build Linux DEB Package
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Linux X11 build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev libxtst-dev libpng-dev build-essential fakeroot dpkg
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install project dependencies
+        run: npm ci || npm install
+
+      - name: Build Angular frontend and Electron main
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
+        run: npm run build:prod || npm run electron:linux
+
+      - name: Package as DEB
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
+        run: npx electron-builder --linux deb
+
+      - name: Upload DEB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: poe-overlay-linux-deb
+          path: dist/*.deb
