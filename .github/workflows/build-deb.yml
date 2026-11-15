@@ -35,10 +35,10 @@ jobs:
       - name: Package as DEB
         env:
           NODE_OPTIONS: --max_old_space_size=4096
-        run: npx electron-builder --linux deb
+        run: npx electron-builder --linux deb --publish never
 
       - name: Upload DEB Artifact
         uses: actions/upload-artifact@v4
         with:
           name: poe-overlay-linux-deb
-          path: dist/*.deb
+          path: release/*.deb
